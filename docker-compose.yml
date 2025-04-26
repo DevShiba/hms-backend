@@ -1,13 +1,22 @@
 services:
+  hms_api:
+    container_name: hms_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - hms_db
   hms_db:
     container_name: hms_db
-    image: postgres
+    image: postgres:latest
     environment:
       POSTGRES_PASSWORD: "1234"
       POSTGRES_USER: "postgres"
       POSTGRES_DB: "hms_db"
     ports:
-      - 5432:5432
+      - 6543:5432
     volumes:
       - pgdata:/var/lib/postgresql/data
 
