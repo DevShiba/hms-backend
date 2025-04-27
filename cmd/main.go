@@ -31,6 +31,8 @@ func main() {
 	server.GET("/appointments", AppointmentController.GetAppointments)
 	server.POST("/appointments", AppointmentController.CreateAppointment)
 	server.GET("/appointments/:appointment_id", AppointmentController.GetAppointmentById)
+	server.PATCH("/appointments/:appointment_id", AppointmentController.UpdateAppointment)
+	server.DELETE("/appointments/:appointment_id", AppointmentController.DeleteAppointment)
 
 	server.Run(":8080")
 }

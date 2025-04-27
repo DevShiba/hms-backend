@@ -22,12 +22,12 @@ func (pu * AppointmentUsecase) GetAppointments() ([]model.Appointment, error){
 }
 
 func (pu * AppointmentUsecase) GetAppointmentById(appointment_id uuid.UUID) (*model.Appointment, error){
-	product, err := pu.repository.GetAppointmentById(appointment_id)
+	appointment, err := pu.repository.GetAppointmentById(appointment_id)
 	if err != nil {
 		return nil, err
 	}
 
-	return product, nil
+	return appointment, nil
 }
 
 func (pu *AppointmentUsecase) CreateAppointment(appointment model.Appointment) (model.Appointment, error){
@@ -37,6 +37,26 @@ func (pu *AppointmentUsecase) CreateAppointment(appointment model.Appointment) (
 	}
 
 	appointment.ID = appointmentId
+
+	return appointment, nil
+}
+
+func (pu *AppointmentUsecase) UpdateAppointment(appointment_id uuid.UUID, appointment model.Appointment) (model.Appointment, error){
+	appointmentId, err := pu.repository.UpdateAppointment(appointment_id, appointment)
+	if err != nil {
+		return model.Appointment{}, err
+	}
+
+	appointment.ID = appointmentId
+
+	return appointment, nil
+}
+
+func (au *AppointmentUsecase) DeleteAppointment(appointment_id uuid.UUID) (*model.Appointment, error) {
+	appointment, err := au.repository.DeleteAppointment(appointment_id)
+	if err != nil {
+		return nil, err
+	}
 
 	return appointment, nil
 }

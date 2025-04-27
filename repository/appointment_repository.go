@@ -105,3 +105,49 @@ func (pr *AppointmentRepository) CreateAppointment(appointment model.Appointment
 
 }
 
+func (pr *AppointmentRepository) UpdateAppointment(appointment_id uuid.UUID, appointment model.Appointment) (uuid.UUID, error){
+	query, err := pr.connection.Prepare(`
+		DELETE FROM appointments
+		WHERE id = $1
+		RETURNING id, appointment_date, status, notes, created_at, updated_at
+	`)
+
+	if err != nil {
+		fmt.Println("Error preparing query:", err)
+		return uuid.UUID{}, err
+	}
+
+	err = query.QueryRow(appointment.AppointmentDate, appointment.Status, appointment.Notes, appointment_id).Scan(&appointment_id)
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return uuid.UUID{}, err
+	}
+
+	query.Close()
+	return appointment_id, nil
+}
+
+func (ar *AppointmentRepository) DeleteAppointment(appointment_id uuid.UUID) (*model.Appointment, error) {
+	query, err := ar.connection.Prepare("DELETE FROM appointments WHERE id = $1")
+
+	if err != nil {
+		fmt.Println("Error preparing query:", err)
+		return &model.Appointment{}, err
+	}
+
+	var appointment = model.Appointment{}
+	err = query.QueryRow(appointment_id).Scan(&appointment.ID, &appointment.AppointmentDate, &appointment.Status, &appointment.Notes, &appointment.CreatedAt, &appointment.UpdatedAt)
+
+	if(err != nil){
+		if(err == sql.ErrNoRows){
+			fmt.Println("No appointment found with the given ID")
+			return nil, nil
+		}
+		fmt.Println("Error executing query:", err)
+		return nil, err
+	}
+
+	query.Close()
+	return &appointment, nil
+
+}

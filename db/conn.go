@@ -8,7 +8,7 @@ import (
 
 const (
 	host		 = "hms_db"
-	port 		 = 6543
+	port 		 = 5432
 	user     = "postgres"
 	password = "1234"
 	dbname   = "hms_db"
