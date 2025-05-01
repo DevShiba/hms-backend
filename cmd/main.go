@@ -18,9 +18,12 @@ func main() {
 	}
 	
 	AppointmentRepository := repository.NewAppointmentRepository(dbConnection)
-	
 	AppointmentUsecase := usecase.NewAppointmentUsecase(AppointmentRepository)
 	AppointmentController := controller.NewAppointmentController(AppointmentUsecase)
+
+	UserRepository := repository.NewUserRepository(dbConnection)
+	UserUsecase := usecase.NewUserUsecase(UserRepository)
+	UserController := controller.NewUserController(UserUsecase)
 
 	server.GET("/ping", func(ctx *gin.Context){
 		ctx.JSON(200, gin.H{
@@ -29,10 +32,13 @@ func main() {
 	})
 
 	server.GET("/appointments", AppointmentController.GetAppointments)
+	server.POST("/register", UserController.RegisterUser)
+	server.POST("/login", UserController.LoginUser)
 	server.POST("/appointments", AppointmentController.CreateAppointment)
 	server.GET("/appointments/:appointment_id", AppointmentController.GetAppointmentById)
 	server.PATCH("/appointments/:appointment_id", AppointmentController.UpdateAppointment)
 	server.DELETE("/appointments/:appointment_id", AppointmentController.DeleteAppointment)
+
 
 	server.Run(":8080")
 }
