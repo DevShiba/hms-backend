@@ -118,7 +118,6 @@ func (p *appointmentController) UpdateAppointment(ctx *gin.Context){
     }
 
 	ctx.JSON(http.StatusOK, updatedAppointment)
-
 }
 
 func (a *appointmentController) DeleteAppointment(ctx *gin.Context){

@@ -25,12 +25,21 @@ func main() {
 	UserUsecase := usecase.NewUserUsecase(UserRepository)
 	UserController := controller.NewUserController(UserUsecase)
 
+	DoctorRepository := repository.NewDoctorRepository(dbConnection)
+	DoctorUsecase := usecase.NewDoctorUsecase(DoctorRepository)
+	DoctorController := controller.NewDoctorController(DoctorUsecase)
+
 	server.GET("/ping", func(ctx *gin.Context){
 		ctx.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
 
+	server.GET("/doctors", DoctorController.GetDoctors)
+	server.GET("/doctors/:doctor_id", DoctorController.GetDoctorById)
+	server.POST("/doctors", DoctorController.CreateDoctor)
+	server.PATCH("/doctors/:doctor_id", DoctorController.UpdateDoctor)
+	server.DELETE("/doctors/:doctor_id", DoctorController.DeleteDoctor)
 	server.GET("/appointments", AppointmentController.GetAppointments)
 	server.POST("/register", UserController.RegisterUser)
 	server.POST("/login", UserController.LoginUser)
