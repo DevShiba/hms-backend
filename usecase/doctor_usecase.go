@@ -1,63 +1,51 @@
 package usecase
 
 import (
-	"hms-api/model"
-	"hms-api/repository"
+	"context"
+	"hms-api/domain"
+	"time"
 
 	"github.com/google/uuid"
 )
 
-type DoctorUsecase struct {
-	repository repository.DoctorRepository
+type doctorUsecase struct {
+	doctorRepository domain.DoctorRepository
+	contextTimeout time.Duration
 }
 
-func NewDoctorUsecase(repo repository.DoctorRepository) DoctorUsecase {
-	return DoctorUsecase{
-		repository: repo,
+func NewDoctorUsecase(doctorRepository domain.DoctorRepository, timeout time.Duration) domain.DoctorUsecase {
+	return &doctorUsecase{
+		doctorRepository: doctorRepository,
+		contextTimeout: timeout,
 	}
 }
 
-func (du *DoctorUsecase) GetDoctors() ([]model.Doctor, error) {
-	doctorList, err := du.repository.GetDoctors()
-	if err != nil {
-		return []model.Doctor{}, err
-	}
-
-	return doctorList, nil
+func (du *doctorUsecase) Create(c context.Context, doctor *domain.Doctor) error {
+	ctx, cancel := context.WithTimeout(c, du.contextTimeout)
+	defer cancel()
+	return du.doctorRepository.Create(ctx, doctor)
 }
 
-func (du *DoctorUsecase) GetDoctorById(doctor_id uuid.UUID) (*model.Doctor, error){
-	doctor, err := du.repository.GetDoctorById(doctor_id)
-	if err != nil {
-		return nil, err
-	}
-
-	return doctor, nil
+func (du *doctorUsecase) Fetch(c context.Context) ([]domain.Doctor, error) {
+	ctx, cancel := context.WithTimeout(c, du.contextTimeout)
+	defer cancel()
+	return du.doctorRepository.Fetch(ctx)
 }
 
-func (du *DoctorUsecase) CreateDoctor(doctor model.Doctor) (*model.Doctor, error){
-    createdDoctor, err := du.repository.CreateDoctor(doctor)
-    if err != nil {
-        return nil, err
-    }
-    
-    return createdDoctor, nil
+func (du *doctorUsecase) FetchByID(c context.Context, id uuid.UUID) (domain.Doctor, error) {
+	ctx, cancel := context.WithTimeout(c, du.contextTimeout)
+	defer cancel()
+	return du.doctorRepository.FetchByID(ctx, id)
 }
 
-func (du *DoctorUsecase) UpdateDoctor(doctor_id uuid.UUID, doctor model.Doctor) (*model.Doctor, error){
-	updatedDoctor, err := du.repository.UpdateDoctor(doctor_id, doctor)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedDoctor, nil
+func (du *doctorUsecase) Update(c context.Context, doctor *domain.Doctor) error {
+	ctx, cancel := context.WithTimeout(c, du.contextTimeout)
+	defer cancel()
+	return du.doctorRepository.Update(ctx, doctor)
 }
 
-func (du *DoctorUsecase) DeleteDoctor(doctor_id uuid.UUID) error {
-    err := du.repository.DeleteDoctor(doctor_id)
-    if err != nil {
-        return err
-    }
-
-    return nil
+func (du *doctorUsecase) Delete(c context.Context, id uuid.UUID) error {
+	ctx, cancel := context.WithTimeout(c, du.contextTimeout)
+	defer cancel()
+	return du.doctorRepository.Delete(ctx, id)
 }

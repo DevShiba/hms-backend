@@ -1,158 +1,112 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"hms-api/model"
+	"hms-api/domain"
 
 	"github.com/google/uuid"
 )
 
-type DoctorRepository struct {
-	connection *sql.DB
+type doctorRepository struct {
+	database *sql.DB
 }
 
-func NewDoctorRepository(db *sql.DB) DoctorRepository {
-	return DoctorRepository{
-		connection: db,
+func NewDoctorRepository(db *sql.DB) domain.DoctorRepository {
+	return &doctorRepository{
+		database: db,
 	}
 }
 
-func (dr *DoctorRepository) GetDoctors() ([]model.Doctor, error){
-	query := "SELECT id, user_id, crm, specialty, created_at FROM doctors"
-	rows, err := dr.connection.Query(query)
-
-	if err != nil {
-		fmt.Println("Error executing query:", err)
-		return []model.Doctor{}, err
-	}
-
-	var doctorList []model.Doctor
-	var doctorObj model.Doctor
-
-	for rows.Next(){
-		err = rows.Scan(
-			&doctorObj.ID,
-			&doctorObj.UserId,
-			&doctorObj.CRM,
-			&doctorObj.Specialty,
-			&doctorObj.CreatedAt,
-		)
-
-		if(err != nil){
-			fmt.Println("Error executing query:", err)
-			return []model.Doctor{}, err
-		}
-
-		doctorList = append(doctorList, doctorObj)
-	}
-
-	rows.Close()
-
-	return doctorList, nil
-}
-
-func (dr *DoctorRepository) CreateDoctor(doctor model.Doctor) (*model.Doctor, error) {
+func (dr *doctorRepository) Create(c context.Context, doctor *domain.Doctor) error {
 	query := "INSERT INTO doctors (user_id, crm, specialty) VALUES ($1, $2, $3) RETURNING id"
-	rows, err := dr.connection.Query(query, doctor.UserId, doctor.CRM, doctor.Specialty)
+	err := dr.database.QueryRowContext(c, query, doctor.UserId, doctor.CRM, doctor.Specialty).Scan(&doctor.ID)
 	if err != nil {
-		fmt.Println("Error preparing query:", err)
-		return nil, err
+		fmt.Println("Error executing query:", err)
+		return err
 	}
+	return nil
+}
 
-	var doctorObj model.Doctor
+func (dr *doctorRepository) Fetch(c context.Context) ([]domain.Doctor, error) {
+	query := "SELECT id, user_id, crm, specialty, created_at FROM doctors"
+	rows, err := dr.database.QueryContext(c, query)
+
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return []domain.Doctor{}, err
+	}
+	defer rows.Close()
+
+	var doctors []domain.Doctor
+
 	for rows.Next() {
+		var doctor domain.Doctor
 		err = rows.Scan(
-			&doctorObj.ID,
-			&doctorObj.UserId,
-			&doctorObj.CRM,
-			&doctorObj.Specialty,
-			&doctorObj.CreatedAt,
-		)
-	}
-
-	if err != nil {
-		fmt.Println("Error executing query:", err)
-		return nil, err
-	}
-
-	rows.Close()
-
-	return &doctorObj, nil
-
-}
-
-func (dr *DoctorRepository) GetDoctorById(doctor_id uuid.UUID) (*model.Doctor, error){
-	query := "SELECT id, user_id, crm, specialty, created_at FROM doctors WHERE id = $1"	
-	rows, err := dr.connection.Query(query, doctor_id)
-
-	if err != nil {
-		fmt.Println("Error executing query:", err)
-		return nil, err
-	}
-
-	var doctorObj model.Doctor
-
-	for rows.Next(){
-		err = rows.Scan(
-			&doctorObj.ID,
-			&doctorObj.UserId,
-			&doctorObj.CRM,
-			&doctorObj.Specialty,
-			&doctorObj.CreatedAt,
+			&doctor.ID,
+			&doctor.UserId,
+			&doctor.CRM,
+			&doctor.Specialty,
+			&doctor.CreatedAt,
 		)
 
-		if(err != nil){
-			fmt.Println("Error executing query:", err)
-			return nil, err
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return []domain.Doctor{}, err
 		}
+
+		doctors = append(doctors, doctor)
 	}
 
-		rows.Close()
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
 
-	return &doctorObj, nil
+	return doctors, nil
 }
 
-func (dr *DoctorRepository) UpdateDoctor(doctor_id uuid.UUID, doctor model.Doctor) (*model.Doctor, error) {
+func (dr *doctorRepository) FetchByID(c context.Context, id uuid.UUID) (domain.Doctor, error) {
+	var doctor domain.Doctor
+	query := "SELECT id, user_id, crm, specialty, created_at FROM doctors WHERE id = $1"
+	
+	err := dr.database.QueryRowContext(c, query, id).Scan(
+		&doctor.ID,
+		&doctor.UserId,
+		&doctor.CRM,
+		&doctor.Specialty,
+		&doctor.CreatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return domain.Doctor{}, nil
+		}
+		return domain.Doctor{}, err
+	}
+
+	return doctor, nil
+}
+
+func (dr *doctorRepository) Update(c context.Context, doctor *domain.Doctor) error {
 	query := "UPDATE doctors SET crm = $1, specialty = $2 WHERE id = $3"
-	rows, err := dr.connection.Query(query, doctor.CRM, doctor.Specialty, doctor.ID)
-
-	if err != nil {
-		fmt.Println("Error executing query:", err)
-		return nil, err
-	}
-
-	var doctorObj model.Doctor
-
-
-	for rows.Next(){
-		err = rows.Scan(
-			&doctorObj.ID,
-			&doctorObj.UserId,
-			&doctorObj.CRM,
-			&doctorObj.Specialty,
-			&doctorObj.CreatedAt,
-		)
-
-		if(err != nil){
-			fmt.Println("Error executing query:", err)
-			return nil, err
-		}
-
-	}
+	_, err := dr.database.ExecContext(c, query, doctor.CRM, doctor.Specialty, doctor.ID)
 	
-	rows.Close()
+	if err != nil {
+		fmt.Println("Error executing update:", err)
+		return err
+	}
 
-	return &doctorObj, nil
+	return nil
 }
 
-func (dr *DoctorRepository) DeleteDoctor(doctor_id uuid.UUID) error {
+func (dr *doctorRepository) Delete(c context.Context, id uuid.UUID) error {
 	query := "DELETE FROM doctors WHERE id = $1"
-	_, err := dr.connection.Query(query, doctor_id)
+	_, err := dr.database.ExecContext(c, query, id)
 	
 	if err != nil {
-		fmt.Println("Error executing query:", err)
-		return  err
+		fmt.Println("Error executing delete:", err)
+		return err
 	}
 
 	return nil

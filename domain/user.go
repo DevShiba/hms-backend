@@ -1,6 +1,7 @@
-package model
+package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,4 +23,11 @@ type User struct {
 	Role      UserRole  `json:"role"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+}
+
+type UserRepository interface {
+	Create(c context.Context, user *User) error
+	Fetch(c context.Context) ([]User, error)
+	GetByEmail(c context.Context, email string) (User, error)
+	GetByID(c context.Context, id uuid.UUID) (User, error)
 }

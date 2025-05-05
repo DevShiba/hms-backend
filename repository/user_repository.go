@@ -1,67 +1,127 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"hms-api/model"
+	"hms-api/domain"
 
 	"github.com/google/uuid"
 )
 
-type UserRepository struct {
-	connection *sql.DB
+type userRepository struct {
+	database *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
-	return UserRepository {
-		connection: db,
+func NewUserRepository(db *sql.DB) domain.UserRepository {
+	return &userRepository{
+		database:  db,
 	}
 }
 
-func (ur *UserRepository) RegisterUser(user model.User) (uuid.UUID, error)  {
-	var id uuid.UUID
-	query, err := ur.connection.Prepare("INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id")
-	
-	if err != nil {
-		fmt.Println("Error preparing query:", err)
-		return uuid.UUID{}, err
-	}
+func (ur *userRepository) Create(c context.Context, user *domain.User) error {
+    query := `
+			INSERT INTO users (username, email, password, role) 
+			VALUES ($1, $2, $3, $4) RETURNING id
+		`
 
-	err = query.QueryRow(user.Username, user.Email, user.Password, user.Role).Scan(&user.ID)
-	if err != nil {
-		fmt.Println("Error executing query:", err)
-		return uuid.UUID{}, err
-	}
-
-	query.Close()
-	return id, nil
+    err := ur.database.QueryRowContext(c, query, user.Username, user.Email, user.Password, user.Role).Scan(&user.ID)
+    if err != nil {
+        fmt.Println("Error executing insert:", err)
+        return err
+    }
+    return nil
 }
 
-func (ur *UserRepository) GetUserByEmail(email string) (model.User, error){
-	var u model.User
-
+func (ur *userRepository) Fetch(c context.Context) ([]domain.User, error) {
 	query := `
-		SELECT id, username, email, password, role, created_at, updated_at
-		FROM users WHERE email = $1
+		SELECT id, username, email, password, role, created_at, updated_at 
+		FROM users
 	`
 
-	err := ur.connection.QueryRow(query, email).Scan(
-		&u.ID,
-		&u.Username,
-		&u.Email,
-		&u.Password,
-		&u.Role,
-		&u.CreatedAt,
-		&u.UpdatedAt,
+    rows, err := ur.database.QueryContext(c, query)
+    if err != nil {
+        fmt.Println("Error executing query:", err)
+        return nil, err
+    }
+    defer rows.Close()
+
+    var users []domain.User
+
+    for rows.Next() {
+        var user domain.User
+        err := rows.Scan(
+            &user.ID,
+            &user.Username,
+            &user.Email,
+            &user.Password,
+            &user.Role,
+            &user.CreatedAt,
+            &user.UpdatedAt,
+        )
+        if err != nil {
+            fmt.Println("Error scanning row:", err)
+            return nil, err
+        }
+        users = append(users, user)
+    }
+
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+
+    return users, nil
+}
+
+func (ur *userRepository) GetByEmail(c context.Context, email string) (domain.User, error) {
+    var user domain.User
+    query := `
+        SELECT id, username, email, password, role, created_at, updated_at
+        FROM users WHERE email = $1
+    `
+    err := ur.database.QueryRowContext(c, query, email).Scan(
+        &user.ID,
+        &user.Username,
+        &user.Email,
+        &user.Password,
+        &user.Role,
+        &user.CreatedAt,
+        &user.UpdatedAt,
+    )
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return domain.User{}, nil
+        }
+        return domain.User{}, err
+    }
+    return user, nil
+}
+
+func (ur *userRepository) GetByID(c context.Context, id uuid.UUID) (domain.User, error){
+	query := `
+		SELECT id, username, email, password, role, created_at, updated_at
+		FROM users WHERE id = $1
+	`
+
+	var user domain.User
+	err := ur.database.QueryRowContext(c, query, id).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Role,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return model.User{}, nil
+			return domain.User{}, nil
 		}
-		return model.User{}, err
+		return domain.User{}, err
 	}
 
-	return u, nil
+	return user, nil
 }
+
 

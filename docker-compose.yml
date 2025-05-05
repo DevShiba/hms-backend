@@ -11,12 +11,14 @@ services:
   hms_db:
     container_name: hms_db
     image: postgres:latest
+    env_file:
+      - .env
     environment:
-      POSTGRES_PASSWORD: "1234"
-      POSTGRES_USER: "postgres"
-      POSTGRES_DB: "hms_db"
+      POSTGRES_PASSWORD: $DB_USER
+      POSTGRES_USER: $DB_PASS
+      POSTGRES_DB: $DB_NAME
     ports:
-      - 6543:5432
+      - $DB_PORT:$DB_PORT
     volumes:
       - pgdata:/var/lib/postgresql/data
 
