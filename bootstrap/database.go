@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	_ "github.com/lib/pq" 
 )
 
 func NewPostgresDatabase(env *Env) *sql.DB {

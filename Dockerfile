@@ -11,6 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o hmsexe ./cmd/main.go
 FROM scratch
 
 COPY --from=builder /app/hmsexe /hmsexe
+COPY --from=builder /app/.env /.env
 
 EXPOSE 8080
 

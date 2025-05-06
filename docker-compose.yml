@@ -5,22 +5,22 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 8080:8080
+      - "$PORT:$PORT"
+    env_file: .env
     depends_on:
       - hms_db
   hms_db:
     container_name: hms_db
     image: postgres:latest
-    env_file:
-      - .env
+    env_file: .env
     environment:
-      POSTGRES_PASSWORD: $DB_USER
-      POSTGRES_USER: $DB_PASS
-      POSTGRES_DB: $DB_NAME
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=$DB_NAME
     ports:
       - $DB_PORT:$DB_PORT
     volumes:
       - pgdata:/var/lib/postgresql/data
 
 volumes:
-  pgdata: {}
+  pgdata:

@@ -7,30 +7,31 @@ import (
 )
 
 type Env struct {
-	DBHost                 string `env:"DB_HOST"`
-	DBPort                 string `env:"DB_PORT"`
-	DBUser                 string `env:"DB_USER"`
-	DBPass                 string `env:"DB_PASS"`
-	DBName                 string `env:"DB_NAME"`
-	ContextTimeout 			   int    `env:"CONTEXT_TIMEOUT"`
-	ServerAddress          string `env:"SERVER_ADDRESS"`
-	AccessTokenExpiryHour  int    `env:"ACCESS_TOKEN_EXPIRY_HOUR"`
-	RefreshTokenExpiryHour int    `env:"REFRESH_TOKEN_EXPIRY_HOUR"`
-	AccessTokenSecret      string `env:"ACCESS_TOKEN_SECRET"`
-	RefreshTokenSecret     string `env:"REFRESH_TOKEN_SECRET"`
+	ServerAddress          string `mapstructure:"SERVER_ADDRESS"`
+	ContextTimeout         int    `mapstructure:"CONTEXT_TIMEOUT"`
+	DBHost                 string `mapstructure:"DB_HOST"`
+	DBPort                 string `mapstructure:"DB_PORT"`
+	DBUser                 string `mapstructure:"DB_USER"`
+	DBPass                 string `mapstructure:"DB_PASS"`
+	DBName                 string `mapstructure:"DB_NAME"`
+	AccessTokenExpiryHour  int    `mapstructure:"ACCESS_TOKEN_EXPIRY_HOUR"`
+	RefreshTokenExpiryHour int    `mapstructure:"REFRESH_TOKEN_EXPIRY_HOUR"`
+	AccessTokenSecret      string `mapstructure:"ACCESS_TOKEN_SECRET"`
+	RefreshTokenSecret     string `mapstructure:"REFRESH_TOKEN_SECRET"`
 }
 
 func NewEnv() *Env {
 	env := Env{}
-	viper.SetConfigName(".emv")
+	viper.SetConfigName(".env")
+	viper.SetConfigType("env")
+	viper.SetConfigFile(".env")
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatalf("Error reading config file, %s", err)
+		log.Fatal("Can't find the file .env : ", err)
 	}
 
 	err = viper.Unmarshal(&env)
-
 	if err != nil {
 		log.Fatal("Environment can't be loaded: ", err)
 	}
