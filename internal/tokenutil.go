@@ -18,7 +18,7 @@ func CreateAccessToken(user *domain.User, secret string, expiry int) (accessToke
 		},
 	}	
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
@@ -35,7 +35,7 @@ func CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshTo
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claimsRefresh)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
 	rt, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
@@ -44,7 +44,7 @@ func CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshTo
 	return rt, err
 }
 
-func isAuthorized(requestToken string, secret string) (bool, error){
+func IsAuthorized(requestToken string, secret string) (bool, error){
 	_, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error){
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

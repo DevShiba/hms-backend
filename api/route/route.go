@@ -2,6 +2,7 @@ package route
 
 import (
 	"database/sql"
+	"hms-api/api/middleware"
 	"hms-api/bootstrap"
 	"time"
 
@@ -14,5 +15,10 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db *sql.DB, gin *gin.Engin
 	NewRegisterRoute(env, timeout, db, publicRouter)
 	NewLoginRoute(env, timeout, db, publicRouter)
 	NewRefreshTokenRouter(env, timeout, db, publicRouter)
-	NewDoctorRoute(env, timeout, db, publicRouter)
+
+	protectedRouter := gin.Group("")
+
+	protectedRouter.Use(middleware.JwtAuthMiddleware(env.AccessTokenSecret))
+
+	NewDoctorRoute(env, timeout, db, protectedRouter)
 }

@@ -39,6 +39,7 @@ func (dc *DoctorController) Create(c *gin.Context) {
 }
 
 func (dc *DoctorController) Fetch(c *gin.Context) {
+	
 	doctors, err := dc.DoctorUsecase.Fetch(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
@@ -67,7 +68,6 @@ func (dc *DoctorController) FetchByID(c *gin.Context) {
 		return
 	}
 	
-	// Check if doctor is empty (using zero value for UUID)
 	if doctor.ID == uuid.Nil {
 		c.JSON(http.StatusNotFound, domain.ErrorResponse{Message: "Doctor not found"})
 		return

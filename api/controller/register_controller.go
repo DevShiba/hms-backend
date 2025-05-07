@@ -46,6 +46,7 @@ func (rc *RegisterController) Register(c *gin.Context){
 		Username: request.Username,
 		Email: request.Email,
 		Password: request.Password,
+		Role: request.Role,
 	}
 
 	err = rc.RegisterUsecase.Create(c, &user)

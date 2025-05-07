@@ -3,9 +3,10 @@ package domain
 import "context"
 
 type RegisterRequest struct {
-	Username     string `form:"name" binding:"required"`
-	Email    string `form:"email" binding:"required,email"`
-	Password string `form:"password" binding:"required"`
+	Username  string    `json:"username"`
+	Email 	  string    `json:"email"`
+	Password  string    `json:"password"`
+	Role      UserRole  `json:"role"`
 }
 
 type RegisterResponse struct {

@@ -90,7 +90,7 @@ func (ur *userRepository) GetByEmail(c context.Context, email string) (domain.Us
     )
     if err != nil {
         if err == sql.ErrNoRows {
-            return domain.User{}, nil
+            return domain.User{}, fmt.Errorf("user not found with email: %s", email)
         }
         return domain.User{}, err
     }
@@ -116,7 +116,7 @@ func (ur *userRepository) GetByID(c context.Context, id uuid.UUID) (domain.User,
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return domain.User{}, nil
+			return domain.User{}, fmt.Errorf("user not found with ID: %s", id)
 		}
 		return domain.User{}, err
 	}
