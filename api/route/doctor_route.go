@@ -18,6 +18,6 @@ func NewDoctorRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB, group
 	group.POST("/doctors", dc.Create)
 	group.GET("/doctors", dc.Fetch)
 	group.GET("/doctors/:id", dc.FetchByID)
-	group.PUT("/doctors/:id", dc.Update)
+	group.PATCH("/doctors/:id", dc.Update)
 	group.DELETE("/doctors/:id", dc.Delete)
 }

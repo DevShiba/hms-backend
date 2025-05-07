@@ -21,4 +21,5 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db *sql.DB, gin *gin.Engin
 	protectedRouter.Use(middleware.JwtAuthMiddleware(env.AccessTokenSecret))
 
 	NewDoctorRoute(env, timeout, db, protectedRouter)
+	NewPatientRoute(env, timeout, db, protectedRouter)
 }
