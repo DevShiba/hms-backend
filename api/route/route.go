@@ -22,4 +22,5 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db *sql.DB, gin *gin.Engin
 
 	NewDoctorRoute(env, timeout, db, protectedRouter)
 	NewPatientRoute(env, timeout, db, protectedRouter)
+	NewAppointmentRoute(env, timeout, db, protectedRouter)
 }
