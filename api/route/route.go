@@ -10,7 +10,7 @@ import (
 )
 
 func Setup(env *bootstrap.Env, timeout time.Duration, db *sql.DB, gin *gin.Engine) {
-	publicRouter := gin.Group("");
+	publicRouter := gin.Group("")
 
 	NewRegisterRoute(env, timeout, db, publicRouter)
 	NewLoginRoute(env, timeout, db, publicRouter)
@@ -23,4 +23,6 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db *sql.DB, gin *gin.Engin
 	NewDoctorRoute(env, timeout, db, protectedRouter)
 	NewPatientRoute(env, timeout, db, protectedRouter)
 	NewAppointmentRoute(env, timeout, db, protectedRouter)
+	NewPrescriptionRoute(env, timeout, db, protectedRouter)
+	NewMedicalRecordRoute(env, timeout, db, protectedRouter)
 }

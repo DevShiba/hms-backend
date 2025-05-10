@@ -13,7 +13,7 @@ type appointmentRepository struct {
 	database *sql.DB
 }
 
-func NewAppointmentRepository(db *sql.DB) domain.AppointmentRepository{
+func NewAppointmentRepository(db *sql.DB) domain.AppointmentRepository {
 	return &appointmentRepository{
 		database: db,
 	}
@@ -22,10 +22,10 @@ func NewAppointmentRepository(db *sql.DB) domain.AppointmentRepository{
 func (ar *appointmentRepository) Create(c context.Context, appointment *domain.Appointment) error {
 	query := `
 		INSERT INTO appointments (patient_id, doctor_id, appointment_date, status, notes)
-		VALUES ($1, $2, $3, $4)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id
 	`
-	err := ar.database.QueryRowContext(c, query, appointment.PatientID, appointment.DoctorID, appointment.AppointmentDate, appointment.Status, appointment.Notes).Scan(&appointment.ID )
+	err := ar.database.QueryRowContext(c, query, appointment.PatientID, appointment.DoctorID, appointment.AppointmentDate, appointment.Status, appointment.Notes).Scan(&appointment.ID)
 	if err != nil {
 		fmt.Println("Error executing query:", err)
 		return err
@@ -49,7 +49,7 @@ func (ar *appointmentRepository) Fetch(c context.Context) ([]domain.Appointment,
 
 	var appointments []domain.Appointment
 
-	for rows.Next(){
+	for rows.Next() {
 		var appointment domain.Appointment
 		err = rows.Scan(
 			&appointment.ID,
@@ -77,7 +77,7 @@ func (ar *appointmentRepository) Fetch(c context.Context) ([]domain.Appointment,
 	return appointments, nil
 }
 
-func (ar *appointmentRepository) FetchByID(c context.Context, id uuid.UUID) (domain.Appointment, error){
+func (ar *appointmentRepository) FetchByID(c context.Context, id uuid.UUID) (domain.Appointment, error) {
 	var appointment domain.Appointment
 	query := `
 		SELECT id, patient_id, doctor_id, appointment_date, status, notes, created_at, updated_at
@@ -85,14 +85,14 @@ func (ar *appointmentRepository) FetchByID(c context.Context, id uuid.UUID) (dom
 	`
 
 	err := ar.database.QueryRowContext(c, query, id).Scan(
-			&appointment.ID,
-			&appointment.PatientID,
-			&appointment.DoctorID,
-			&appointment.AppointmentDate,
-			&appointment.Status,
-			&appointment.Notes,
-			&appointment.CreatedAt,
-			&appointment.UpdatedAt,
+		&appointment.ID,
+		&appointment.PatientID,
+		&appointment.DoctorID,
+		&appointment.AppointmentDate,
+		&appointment.Status,
+		&appointment.Notes,
+		&appointment.CreatedAt,
+		&appointment.UpdatedAt,
 	)
 
 	if err != nil {
