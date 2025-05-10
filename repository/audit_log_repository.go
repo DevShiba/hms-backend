@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
 	"hms-api/domain"
+
+	"github.com/google/uuid"
 )
 
 type auditLogRepository struct {
@@ -20,13 +21,13 @@ func NewAuditLogRepository(db *sql.DB) domain.AuditLogRepository {
 
 func (alr *auditLogRepository) Create(c context.Context, auditLog *domain.AuditLog) error {
 	query := `
-	INSERT INTO audit_logs (user_id, action, description)
-	VALUES ($1, $2, $3)
+	INSERT INTO audit_logs (user_id, action, description, created_at)
+	VALUES ($1, $2, $3, $4)
 	RETURNING id
 `
-	err := alr.database.QueryRowContext(c, query, auditLog.ID, auditLog.UserID, auditLog.Action, auditLog.CreatedAt).Scan(&auditLog.ID)
+	err := alr.database.QueryRowContext(c, query, auditLog.UserID, auditLog.Action, auditLog.Description, auditLog.CreatedAt).Scan(&auditLog.ID)
 	if err != nil {
-		fmt.Println("Error executing query:", err)
+		fmt.Println("Error executing query:", err) 
 		return err
 	}
 

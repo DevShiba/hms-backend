@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"hms-api/api/controller"
 	"hms-api/bootstrap"
+	"hms-api/internal/auditservice"
 	"hms-api/repository"
 	"hms-api/usecase"
 	"time"
@@ -13,9 +14,14 @@ import (
 
 func NewLoginRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB, group *gin.RouterGroup) {
 	ur := repository.NewUserRepository(db)
-	lc := &controller.LoginController{
-		LoginUsecase: usecase.NewLoginUsecase(ur, timeout),
-		Env: 			    env,	
-	}
+	alr := repository.NewAuditLogRepository(db) 
+	alu := usecase.NewAuditLogUsecase(alr, timeout) 
+	as := auditservice.NewService(alu)            
+
+	lc := controller.NewLoginController( 
+		usecase.NewLoginUsecase(ur, timeout),
+		env,
+		as, 
+	)
 	group.POST("/login", lc.Login)
 }

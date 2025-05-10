@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"context"
+	"fmt"
 	"hms-api/bootstrap"
 	"hms-api/domain"
+	"hms-api/internal/auditservice"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +15,15 @@ import (
 type LoginController struct {
 	LoginUsecase domain.LoginUsecase
 	Env          *bootstrap.Env
+	AuditService auditservice.Service
+}
+
+func NewLoginController(lu domain.LoginUsecase, env *bootstrap.Env, as auditservice.Service) *LoginController {
+	return &LoginController{
+		LoginUsecase: lu,
+		Env:          env,
+		AuditService: as,
+	}
 }
 
 func (lc *LoginController) Login(c *gin.Context) {
@@ -30,6 +42,11 @@ func (lc *LoginController) Login(c *gin.Context) {
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)) != nil {
+		if lc.AuditService != nil {
+			go func() {
+				_ = lc.AuditService.Log(context.Background(), user.ID, "USER_LOGIN_FAILED", fmt.Sprintf("Failed login attempt for email: %s", request.Email))
+			}()
+		}
 		c.JSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "Invalid credentials"})
 		return
 	}
@@ -44,6 +61,12 @@ func (lc *LoginController) Login(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
+	}
+
+	if lc.AuditService != nil {
+		go func() {
+			_ = lc.AuditService.Log(context.Background(), user.ID, "USER_LOGIN_SUCCESS", fmt.Sprintf("User %s logged in successfully", user.Email))
+		}()
 	}
 
 	loginResponse := domain.LoginResponse{

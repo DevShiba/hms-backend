@@ -2,17 +2,22 @@ package route
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
 	"hms-api/api/controller"
 	"hms-api/bootstrap"
+	"hms-api/internal/auditservice"
 	"hms-api/repository"
 	"hms-api/usecase"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func NewMedicalRecordRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB, group *gin.RouterGroup) {
 	mrr := repository.NewMedicalRecordRepository(db)
-	mrc := controller.NewMedicalRecordController(usecase.NewMedicalRecordUsecase(mrr, timeout))
+	alr := repository.NewAuditLogRepository(db)
+	alu := usecase.NewAuditLogUsecase(alr, timeout)
+	as := auditservice.NewService(alu)
+	mrc := controller.NewMedicalRecordController(usecase.NewMedicalRecordUsecase(mrr, timeout), as)
 
 	group.POST("/medical_records", mrc.Create)
 	group.GET("/medical_records", mrc.Fetch)

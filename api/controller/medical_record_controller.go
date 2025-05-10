@@ -1,19 +1,25 @@
 package controller
 
 import (
+	"context"
+	"fmt"
+	"hms-api/domain"
+	"hms-api/internal/auditservice"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"hms-api/domain"
-	"net/http"
 )
 
 type MedicalRecordController struct {
 	MedicalRecordUsecase domain.MedicalRecordUsecase
+	AuditService  auditservice.Service
 }
 
-func NewMedicalRecordController(medicalRecordUsecase domain.MedicalRecordUsecase) *MedicalRecordController {
+func NewMedicalRecordController(medicalRecordUsecase domain.MedicalRecordUsecase, as auditservice.Service) *MedicalRecordController {
 	return &MedicalRecordController{
 		MedicalRecordUsecase: medicalRecordUsecase,
+		AuditService: as,
 	}
 }
 
@@ -30,6 +36,17 @@ func (mrc *MedicalRecordController) Create(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
+	}
+
+	if mrc.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = mrc.AuditService.Log(context.Background(), userID, "MEDICAL_RECORD_CREATE", fmt.Sprintf("Medical Record created with ID: %s", record.ID.String()))
+		}()
 	}
 
 	c.JSON(http.StatusCreated, record)
@@ -69,6 +86,17 @@ func (mrc *MedicalRecordController) FetchByID(c *gin.Context) {
 		return
 	}
 
+	if mrc.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = mrc.AuditService.Log(context.Background(), userID, "MEDICAL_RECORD_FETCH_BY_ID", fmt.Sprintf("Medical Record fetched with ID: %s", parsedID.String()))
+		}()
+	}
+
 	c.JSON(http.StatusOK, record)
 }
 
@@ -99,6 +127,17 @@ func (mrc *MedicalRecordController) Update(c *gin.Context) {
 		return
 	}
 
+	if mrc.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = mrc.AuditService.Log(context.Background(), userID, "MEDICAL_RECORD_UPDATE", fmt.Sprintf("Medical Record updated with ID: %s", record.ID.String()))
+		}()
+	}
+
 	c.JSON(http.StatusOK, record)
 }
 
@@ -119,6 +158,17 @@ func (mrc *MedicalRecordController) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
+	}
+
+	if mrc.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = mrc.AuditService.Log(context.Background(), userID, "MEDICAL_RECORD_DELETE", fmt.Sprintf("Medical Record deleted with ID: %s", parsedID.String()))
+		}()
 	}
 
 	c.JSON(http.StatusNoContent, nil)

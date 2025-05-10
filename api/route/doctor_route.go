@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"hms-api/api/controller"
 	"hms-api/bootstrap"
+	"hms-api/internal/auditservice"
 	"hms-api/repository"
 	"hms-api/usecase"
 	"time"
@@ -13,7 +14,10 @@ import (
 
 func NewDoctorRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB, group *gin.RouterGroup) {
 	dr := repository.NewDoctorRepository(db)
-	dc := controller.NewDoctorController(usecase.NewDoctorUsecase(dr, timeout))
+	alr := repository.NewAuditLogRepository(db) 
+	alu := usecase.NewAuditLogUsecase(alr, timeout) 
+	as := auditservice.NewService(alu)        
+	dc := controller.NewDoctorController(usecase.NewDoctorUsecase(dr, timeout), as)
 
 	group.POST("/doctors", dc.Create)
 	group.GET("/doctors", dc.Fetch)

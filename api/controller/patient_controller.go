@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"context"
+	"fmt"
 	"hms-api/domain"
+	"hms-api/internal/auditservice"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +13,13 @@ import (
 
 type PatientController struct {
 	PatientUsecase domain.PatientUsecase
+	AuditService  auditservice.Service
 }
 
-func NewPatientController(usecase domain.PatientUsecase) *PatientController {
+func NewPatientController(usecase domain.PatientUsecase, as auditservice.Service) *PatientController {
 	return &PatientController{
 		PatientUsecase: usecase,
+		AuditService:  as,
 	}
 }
 
@@ -34,6 +39,17 @@ func (pc *PatientController) Create(c *gin.Context){
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
+	}
+
+	if pc.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = pc.AuditService.Log(context.Background(), userID, "PATIENT_CREATE", fmt.Sprintf("Patient created with ID: %s", patient.ID.String()))
+		}()
 	}
 
 	c.JSON(http.StatusCreated, patient)
@@ -73,6 +89,17 @@ func (pc *PatientController) FetchByID(c *gin.Context){
 		return
 	}
 
+	if pc.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = pc.AuditService.Log(context.Background(), userID, "PATIENT_FETCH_BY_ID", fmt.Sprintf("Patient fetched with ID: %s", patient.ID.String()))
+		}()
+	}
+
 	c.JSON(http.StatusOK, patient)
 }
 
@@ -105,6 +132,17 @@ func (pc *PatientController) Update(c *gin.Context){
 		return
 	}
 
+	if pc.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = pc.AuditService.Log(context.Background(), userID, "PATIENT_UPDATE", fmt.Sprintf("Patient updated with ID: %s", patient.ID.String()))
+		}()
+	}
+
 	c.JSON(http.StatusOK, patient)
 }
 
@@ -126,6 +164,17 @@ func (pc *PatientController) Delete(c *gin.Context){
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
+	}
+
+	if pc.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = pc.AuditService.Log(context.Background(), userID, "PATIENT_DELETE", fmt.Sprintf("Patient deleted with ID: %s", parsedID.String()))
+		}()
 	}
 
 	c.JSON(http.StatusNoContent, nil)

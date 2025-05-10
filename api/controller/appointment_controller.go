@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"context"
+	"fmt"
 	"hms-api/domain"
+	"hms-api/internal/auditservice"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +13,13 @@ import (
 
 type AppointmentController struct {
 	AppointmentUsecase domain.AppointmentUsecase
+	AuditService  auditservice.Service
 }
 
-func NewAppointmentController(usecase domain.AppointmentUsecase) *AppointmentController {
+func NewAppointmentController(usecase domain.AppointmentUsecase, as auditservice.Service) *AppointmentController {
 	return &AppointmentController{
 		AppointmentUsecase: usecase,
+		AuditService: as,
 	}
 }
 
@@ -32,6 +37,17 @@ func (ac *AppointmentController) Create(c *gin.Context){
 		if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
+	}
+
+	if ac.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = ac.AuditService.Log(context.Background(), userID, "APPOINTMENT_CREATE", fmt.Sprintf("Appointment created with ID: %s", appointment.ID.String()))
+		}()
 	}
 
 	c.JSON(http.StatusCreated, appointment)
@@ -73,6 +89,17 @@ func (ac *AppointmentController) FetchByID(c *gin.Context){
 		return
 	}
 
+	if ac.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = ac.AuditService.Log(context.Background(), userID, "DOCTOR_CREATE", fmt.Sprintf("Appointment fetched with ID: %s", appointmentID))
+		}()
+	}
+
 	c.JSON(http.StatusOK, appointment)
 }
 
@@ -105,6 +132,17 @@ func (ac *AppointmentController) Update(c *gin.Context){
 		return
 	}
 
+	if ac.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = ac.AuditService.Log(context.Background(), userID, "APPOINTMENT_UPDATE", fmt.Sprintf("Appointment updated with ID: %s", appointment.ID.String()))
+		}()
+	}
+
 	c.JSON(http.StatusOK, appointment)
 }
 
@@ -126,6 +164,17 @@ func (ac *AppointmentController) Delete(c *gin.Context){
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
+	}
+
+	if ac.AuditService != nil {
+		userIDCtx, _ := c.Get("x-user-id")
+		userID := uuid.Nil
+		if id, ok := userIDCtx.(uuid.UUID); ok {
+			userID = id
+		}
+		go func() {
+			_ = ac.AuditService.Log(context.Background(), userID, "APPOINTMENT_DELETE", fmt.Sprintf("Appointment deleted with ID: %s", appointmentID))
+		}()
 	}
 
 	c.JSON(http.StatusNoContent, nil)
