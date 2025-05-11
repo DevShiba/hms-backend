@@ -106,6 +106,92 @@ func (ar *appointmentRepository) FetchByID(c context.Context, id uuid.UUID) (dom
 	return appointment, nil
 }
 
+func (ar *appointmentRepository) FetchByPatientID(c context.Context, patientID uuid.UUID) ([]domain.Appointment, error) {
+	query := `
+		SELECT id, patient_id, doctor_id, appointment_date, status, notes, created_at, updated_at
+		FROM appointments
+		WHERE patient_id = $1
+	` 
+
+	rows, err := ar.database.QueryContext(c, query, patientID)
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return []domain.Appointment{}, err
+	}
+
+	defer rows.Close()
+
+	var appointments []domain.Appointment
+	for rows.Next() {
+		var appointment domain.Appointment
+		err = rows.Scan(
+			&appointment.ID,
+			&appointment.PatientID,
+			&appointment.DoctorID,
+			&appointment.AppointmentDate,
+			&appointment.Status,
+			&appointment.Notes,
+			&appointment.CreatedAt,
+			&appointment.UpdatedAt,
+		)
+
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return []domain.Appointment{}, err
+		}
+
+		appointments = append(appointments, appointment)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return appointments, nil
+}
+
+func (ar *appointmentRepository) FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]domain.Appointment, error) {
+	query := `
+		SELECT id, patient_id, doctor_id, appointment_date, status, notes, created_at, updated_at
+		FROM appointments
+		WHERE doctor_id = $1
+	` 
+
+	rows, err := ar.database.QueryContext(c, query, doctorID)
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return []domain.Appointment{}, err
+	}
+
+	defer rows.Close()
+
+	var appointments []domain.Appointment
+	for rows.Next() {
+		var appointment domain.Appointment
+		err = rows.Scan(
+			&appointment.ID,
+			&appointment.PatientID,
+			&appointment.DoctorID,
+			&appointment.AppointmentDate,
+			&appointment.Status,
+			&appointment.Notes,
+			&appointment.CreatedAt,
+			&appointment.UpdatedAt,
+		)
+
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return []domain.Appointment{}, err
+		}
+
+		appointments = append(appointments, appointment)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return appointments, nil
+}
+
 func (ar *appointmentRepository) Update(c context.Context, appointment *domain.Appointment) error {
 	query := `
 		UPDATE appointments

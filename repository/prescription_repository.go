@@ -94,6 +94,78 @@ func (pr *prescriptionRepository) FetchByID(c context.Context, id uuid.UUID) (*d
 	return prescription, nil
 }
 
+func (pr *prescriptionRepository) FetchByPatientID(c context.Context, patientID uuid.UUID) ([]domain.Prescription, error) {
+	query := `
+	SELECT id, patient_id, doctor_id, medical_record_id, medication_details, created_at
+	FROM prescriptions
+	WHERE patient_id = $1
+`
+	rows, err := pr.database.QueryContext(c, query, patientID)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching prescription by patient ID: %w", err)
+	}
+	defer rows.Close()
+
+	var prescriptions []domain.Prescription
+	for rows.Next() {
+		var prescription domain.Prescription
+		if err := rows.Scan(
+			&prescription.ID,
+			&prescription.PatientID,
+			&prescription.DoctorID,
+			&prescription.MedicalRecordID,
+			&prescription.MedicationDetails,
+			&prescription.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("error scanning prescription: %w", err)
+		}
+
+		prescriptions = append(prescriptions, prescription)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating prescription: %w", err)
+	}
+
+	return prescriptions, nil
+}
+
+func (pr *prescriptionRepository) FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]domain.Prescription, error) {
+	query := `
+	SELECT id, patient_id, doctor_id, medical_record_id, medication_details, created_at
+	FROM prescriptions
+	WHERE doctor_id = $1
+`
+	rows, err := pr.database.QueryContext(c, query, doctorID)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching prescription by doctor ID: %w", err)
+	}
+	defer rows.Close()
+
+	var prescriptions []domain.Prescription
+	for rows.Next() {
+		var prescription domain.Prescription
+		if err := rows.Scan(
+			&prescription.ID,
+			&prescription.PatientID,
+			&prescription.DoctorID,
+			&prescription.MedicalRecordID,
+			&prescription.MedicationDetails,
+			&prescription.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("error scanning prescription: %w", err)
+		}
+
+		prescriptions = append(prescriptions, prescription)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating prescription: %w", err)
+	}
+
+	return prescriptions, nil
+}
+
 func (pr *prescriptionRepository) Update(c context.Context, prescription *domain.Prescription) error {
 	query := `
 	UPDATE prescriptions
@@ -109,7 +181,7 @@ func (pr *prescriptionRepository) Update(c context.Context, prescription *domain
 	)
 
 	if err != nil {
-		return fmt.Errorf("Error updating prescription: %w", err)
+		return fmt.Errorf("error updating prescription: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()

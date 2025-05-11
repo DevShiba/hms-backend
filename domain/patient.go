@@ -21,6 +21,7 @@ type PatientRepository interface {
 	Create(c context.Context, patient *Patient) error
 	Fetch(c context.Context) ([]Patient, error)
 	FetchByID(c context.Context, id uuid.UUID) (Patient, error)
+	FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]Patient, error) 
 	Update(c context.Context, patient *Patient) error
 	Delete(c context.Context, id uuid.UUID) error
 }
@@ -29,6 +30,7 @@ type PatientUsecase interface {
 	Create(c context.Context, patient *Patient) error
 	Fetch(c context.Context) ([]Patient, error)
 	FetchByID(c context.Context, id uuid.UUID) (Patient, error)
+	FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]Patient, error) 
 	Update(c context.Context, patient *Patient) error
 	Delete(c context.Context, id uuid.UUID) error
 }

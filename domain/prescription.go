@@ -20,6 +20,8 @@ type PrescriptionRepository interface {
 	Create(c context.Context, prescription *Prescription) error
 	Fetch(c context.Context) ([]Prescription, error)
 	FetchByID(c context.Context, id uuid.UUID) (*Prescription, error)
+	FetchByPatientID(c context.Context, patientID uuid.UUID) ([]Prescription, error)
+	FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]Prescription, error)
 	Update(c context.Context, prescription *Prescription) error
 	Delete(c context.Context, id uuid.UUID) error
 }
@@ -28,6 +30,8 @@ type PrescriptionUsecase interface {
 	Create(c context.Context, prescription *Prescription) error
 	Fetch(c context.Context) ([]Prescription, error)
 	FetchByID(c context.Context, id uuid.UUID) (*Prescription, error)
+	FetchByPatientID(c context.Context, patientID uuid.UUID) ([]Prescription, error)
+	FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]Prescription, error)
 	Update(c context.Context, prescription *Prescription) error
 	Delete(c context.Context, id uuid.UUID) error
 }

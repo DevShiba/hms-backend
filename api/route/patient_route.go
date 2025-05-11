@@ -22,6 +22,7 @@ func NewPatientRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB, grou
 	group.POST("/patients", pc.Create)
 	group.GET("/patients", pc.Fetch)
 	group.GET("/patients/:id", pc.FetchByID)
+	group.GET("/patients/doctor/:doctor_id", pc.FetchByDoctorID)
 	group.PATCH("/patients/:id", pc.Update)
 	group.DELETE("/patients/:id", pc.Delete)
 }

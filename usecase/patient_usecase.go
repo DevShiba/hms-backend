@@ -38,6 +38,12 @@ func (pu *patientUsecase) FetchByID(c context.Context, id uuid.UUID) (domain.Pat
 	return pu.patientRepository.FetchByID(ctx, id)
 }
 
+func (pu *patientUsecase) FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]domain.Patient, error) {
+	ctx, cancel := context.WithTimeout(c, pu.contextTimeout)
+	defer cancel()
+	return pu.patientRepository.FetchByDoctorID(ctx, doctorID)
+}
+
 func (pu *patientUsecase) Update(c context.Context, patient *domain.Patient) error {
 	ctx, cancel := context.WithTimeout(c, pu.contextTimeout)
 	defer cancel()

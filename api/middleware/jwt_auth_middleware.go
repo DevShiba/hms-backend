@@ -34,7 +34,16 @@ func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 					return
 				}
 
+				userRoleString, err := tokenutil.ExtractRoleFromToken(authToken, secret)
+				if err != nil {
+					log.Printf("[ERROR] Middleware: Failed to extract role from token: %v\n", err)
+					c.JSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "Failed to extract user role from token"})
+					c.Abort()
+					return
+				}
+
 				c.Set("x-user-id", parsedUserID)
+				c.Set("x-user-role", domain.UserRole(userRoleString)) 
 				c.Next()
 				return
 			}

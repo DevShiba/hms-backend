@@ -4,6 +4,7 @@ import (
 	"hms-api/bootstrap"
 	"hms-api/domain"
 	"net/http"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -15,12 +16,19 @@ type RegisterController struct {
 	Env             *bootstrap.Env
 }
 
+var rxEmail = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+
 func (rc *RegisterController) Register(c *gin.Context){
 	var request domain.RegisterRequest
 
 	err := c.ShouldBind(&request)
 		if err != nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	if !rxEmail.MatchString(request.Email) {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "Invalid email format"})
 		return
 	}
 

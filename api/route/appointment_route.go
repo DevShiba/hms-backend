@@ -22,6 +22,8 @@ func NewAppointmentRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB, 
 	group.POST("/appointments", ac.Create)
 	group.GET("/appointments", ac.Fetch)
 	group.GET("/appointments/:id", ac.FetchByID)
+	group.GET("/appointments/patient/:patient_id", ac.FetchByPatientID)
+	group.GET("/appointments/doctor/:doctor_id", ac.FetchByDoctorID)
 	group.PATCH("/appointments/:id", ac.Update)
 	group.DELETE("/appointments/:id", ac.Delete)
 }

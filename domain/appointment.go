@@ -30,6 +30,8 @@ type AppointmentRepository interface {
     Create(c context.Context, appointment *Appointment) error
     Fetch(c context.Context) ([]Appointment, error)
     FetchByID(c context.Context, id uuid.UUID) (Appointment, error)
+    FetchByPatientID(c context.Context, patientID uuid.UUID) ([]Appointment, error)
+    FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]Appointment, error)
     Update(c context.Context, appointment *Appointment) error
     Delete(c context.Context, id uuid.UUID) error
 }
@@ -38,6 +40,8 @@ type AppointmentUsecase interface {
     Create(c context.Context, appointment *Appointment) error
     Fetch(c context.Context) ([]Appointment, error)
     FetchByID(c context.Context, id uuid.UUID) (Appointment, error)
+    FetchByPatientID(c context.Context, patientID uuid.UUID) ([]Appointment, error)
+    FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]Appointment, error)
     Update(c context.Context, appointment *Appointment) error
     Delete(c context.Context, id uuid.UUID) error
 }

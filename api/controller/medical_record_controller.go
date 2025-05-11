@@ -100,6 +100,33 @@ func (mrc *MedicalRecordController) FetchByID(c *gin.Context) {
 	c.JSON(http.StatusOK, record)
 }
 
+func (mrc *MedicalRecordController) FetchByDoctorID(c *gin.Context) {
+	doctorID := c.Param("doctor_id")
+	if doctorID == "" {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "doctor id is required"})
+		return
+	}
+
+	parsedID, err := uuid.Parse(doctorID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "Invalid doctor id format"})
+		return
+	}
+
+	records, err := mrc.MedicalRecordUsecase.FetchByDoctorID(c, parsedID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	if records == nil {
+		c.JSON(http.StatusNotFound, domain.ErrorResponse{Message: "No records found for this doctor"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, records)
+}
+
 func (mrc *MedicalRecordController) Update(c *gin.Context) {
 	recordID := c.Param("id")
 	if recordID == "" {

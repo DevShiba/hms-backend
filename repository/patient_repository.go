@@ -101,6 +101,50 @@ func (pr *patientRepository) FetchByID(c context.Context, id uuid.UUID) (domain.
 	return patient, nil
 }
 
+func (pr *patientRepository) FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]domain.Patient, error) {
+	query := `
+		SELECT p.id, p.user_id, p.cpf, p.date_birth, p.phone, p.address, p.created_at
+		FROM patients p
+		JOIN medical_records mr ON p.id = mr.patient_id
+		WHERE mr.doctor_id = $1
+	`
+
+	rows, err := pr.database.QueryContext(c, query, doctorID)
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return []domain.Patient{}, err
+	}
+	defer rows.Close()
+
+	var patients []domain.Patient
+
+	for rows.Next() {
+		var patient domain.Patient
+		err = rows.Scan(
+			&patient.ID,
+			&patient.UserId,
+			&patient.CPF,
+			&patient.DateBirth,
+			&patient.Phone,
+			&patient.Address,
+			&patient.CreatedAt,
+		)
+
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return []domain.Patient{}, err
+		}
+
+		patients = append(patients, patient)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return patients, nil
+}
+
 func (pr *patientRepository) Update(c context.Context, patient *domain.Patient) error {
 	query := `
 		UPDATE patients

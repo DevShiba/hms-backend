@@ -94,6 +94,91 @@ func (mr *medicalRecordRepository) FetchByID(c context.Context, id uuid.UUID) (*
 	return record, nil
 }
 
+func (mr *medicalRecordRepository) FetchByPatientID(c context.Context, patientID uuid.UUID) ([]domain.MedicalRecord, error) {
+	query := `
+		SELECT id, patient_id, doctor_id, diagnosis, treatment, created_at
+		FROM medical_records
+		WHERE patient_id = $1
+	`
+
+	rows, err := mr.database.QueryContext(c, query, patientID)
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return []domain.MedicalRecord{}, err
+	}
+
+	defer rows.Close()
+	var records []domain.MedicalRecord
+	
+	for rows.Next() {
+		var record domain.MedicalRecord
+		err = rows.Scan(
+			&record.ID,
+			&record.PatientID,
+			&record.DoctorID,
+			&record.Diagnosis,
+			&record.Treatment,
+			&record.CreatedAt,
+		)
+
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return []domain.MedicalRecord{}, err
+		}
+
+		records = append(records, record)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return records, nil
+}
+
+func (mr *medicalRecordRepository) FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]domain.MedicalRecord, error) {
+	query := `
+		SELECT id, patient_id, doctor_id, diagnosis, treatment, created_at
+		FROM medical_records
+		WHERE doctor_id = $1
+		`
+
+	rows, err := mr.database.QueryContext(c, query, doctorID)
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return []domain.MedicalRecord{}, err
+	}
+
+	defer rows.Close()
+	var records []domain.MedicalRecord
+
+	for rows.Next() {
+		var record domain.MedicalRecord
+		err = rows.Scan(
+			&record.ID,
+			&record.PatientID,
+			&record.DoctorID,
+			&record.Diagnosis,
+			&record.Treatment,
+			&record.CreatedAt,
+		)
+
+		if err != nil {
+			fmt.Println("Error scanning row:", err)
+			return []domain.MedicalRecord{}, err
+		}
+
+		records = append(records, record)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return records, nil
+	
+}
+
 func (mr *medicalRecordRepository) Update(c context.Context, record *domain.MedicalRecord) error {
 	query := `
         UPDATE medical_records
@@ -124,6 +209,7 @@ func (mr *medicalRecordRepository) Update(c context.Context, record *domain.Medi
 
 	return nil
 }
+
 
 func (mr *medicalRecordRepository) Delete(c context.Context, id uuid.UUID) error {
 	query := `

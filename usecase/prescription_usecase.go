@@ -2,9 +2,10 @@ package usecase
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"hms-api/domain"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type prescriptionUsecase struct {
@@ -35,6 +36,18 @@ func (pu *prescriptionUsecase) FetchByID(c context.Context, id uuid.UUID) (*doma
 	ctx, cancel := context.WithTimeout(c, pu.contextTimeout)
 	defer cancel()
 	return pu.prescriptionRepository.FetchByID(ctx, id)
+}
+
+func (pu *prescriptionUsecase) FetchByPatientID(c context.Context, patientID uuid.UUID) ([]domain.Prescription, error) {
+	ctx, cancel := context.WithTimeout(c, pu.contextTimeout)
+	defer cancel()
+	return pu.prescriptionRepository.FetchByPatientID(ctx, patientID)
+}
+
+func (pu *prescriptionUsecase) FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]domain.Prescription, error){
+	ctx, cancel := context.WithTimeout(c, pu.contextTimeout)
+	defer cancel()
+	return pu.prescriptionRepository.FetchByDoctorID(ctx, doctorID)
 }
 
 func (pu *prescriptionUsecase) Update(c context.Context, prescription *domain.Prescription) error {

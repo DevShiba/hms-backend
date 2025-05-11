@@ -99,6 +99,59 @@ func (pc *PrescriptionController) FetchByID(c *gin.Context) {
 	c.JSON(http.StatusOK, prescription)
 }
 
+func (pc *PrescriptionController) FetchByPatientID(c *gin.Context) {
+	patientID := c.Param("patient_id")
+	if patientID == "" {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "patient id is required"})
+		return
+	}
+
+	parsedID, err := uuid.Parse(patientID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "Invalid patient id format"})
+		return
+	}
+
+	prescriptions, err := pc.PrescriptionUsecase.FetchByPatientID(c, parsedID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	if prescriptions == nil {
+		c.JSON(http.StatusNotFound, domain.ErrorResponse{Message: "No prescriptions found for this patient"})
+	}
+
+	c.JSON(http.StatusOK, prescriptions)
+}
+
+func (pc *PrescriptionController) FetchByDoctorID(c *gin.Context) {
+	doctorID := c.Param("doctor_id")
+	if doctorID == "" {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "doctor id is required"})
+		return
+	}
+
+	parsedID , err := uuid.Parse(doctorID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "Invalid doctor id format"})
+		return
+	}
+
+	prescriptions, err := pc.PrescriptionUsecase.FetchByDoctorID(c, parsedID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	if prescriptions == nil {
+		c.JSON(http.StatusNotFound, domain.ErrorResponse{Message: "No prescriptions found for this doctor"})
+		return
+	}
+
+	c.JSON(http.StatusOK, prescriptions)
+}
+
 func (pc *PrescriptionController) Update(c *gin.Context) {
 	prescriptionID := c.Param("id")
 	if prescriptionID == "" {

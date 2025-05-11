@@ -103,6 +103,60 @@ func (ac *AppointmentController) FetchByID(c *gin.Context){
 	c.JSON(http.StatusOK, appointment)
 }
 
+func (ac *AppointmentController) FetchByPatientID(c *gin.Context){
+	patientID := c.Param("patient_id")
+	if patientID == "" {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "Patient id is required"})
+		return
+	}
+
+	parsedID, err := uuid.Parse(patientID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "Invalid patient id"})
+		return
+	}
+
+	appointments, err := ac.AppointmentUsecase.FetchByPatientID(c, parsedID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	if appointments == nil {
+		c.JSON(http.StatusNotFound, domain.ErrorResponse{Message: "No appointments found for this patient"})
+		return
+	}
+
+	c.JSON(http.StatusOK, appointments)
+}
+
+func (ac *AppointmentController) FetchByDoctorID(c *gin.Context){
+	doctorID := c.Param("doctor_id")
+	if doctorID == "" {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "Doctor id is required"})
+		return
+	}
+
+	parsedID, err := uuid.Parse(doctorID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "Invalid doctor id"})
+		return
+	}
+
+	appointments, err := ac.AppointmentUsecase.FetchByDoctorID(c, parsedID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	if appointments == nil {
+		c.JSON(http.StatusNotFound, domain.ErrorResponse{Message: "No appointments found for this doctor"})
+		return
+	}
+
+	c.JSON(http.StatusOK, appointments)
+}
+
 func (ac *AppointmentController) Update(c *gin.Context){
 	appointmentID := c.Param("id")
 

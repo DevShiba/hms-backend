@@ -13,6 +13,7 @@ func CreateAccessToken(user *domain.User, secret string, expiry int) (accessToke
 	claims := &domain.JwtCustomClaims{
 		Username: user.Username,
 		ID: user.ID,
+		Role: user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},
@@ -77,4 +78,25 @@ func ExtractIDFromToken(requestToken string, secret string) (string, error) {
 	}
 
 	return claims["id"].(string), nil
+}
+
+func ExtractRoleFromToken(requestToken string, secret string) (string, error) {
+	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(secret), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+
+	if !ok && !token.Valid {
+		return "", fmt.Errorf("Invalid Token")
+	}
+
+	return claims["role"].(string), nil
 }

@@ -37,6 +37,12 @@ func (mu *medicalRecordUsecase) FetchByID(c context.Context, id uuid.UUID) (*dom
 	return mu.medicalRecordRepository.FetchByID(ctx, id)
 }
 
+func (mu *medicalRecordUsecase) FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]domain.MedicalRecord, error) {
+	ctx, cancel := context.WithTimeout(c, mu.contextTimeout)
+	defer cancel()
+	return mu.medicalRecordRepository.FetchByDoctorID(ctx, doctorID)
+}
+
 func (mu *medicalRecordUsecase) Update(c context.Context, record *domain.MedicalRecord) error {
 	ctx, cancel := context.WithTimeout(c, mu.contextTimeout)
 	defer cancel()

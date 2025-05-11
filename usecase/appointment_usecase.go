@@ -38,6 +38,18 @@ func (au *appointmentUsecase) FetchByID(c context.Context, id uuid.UUID) (domain
 	return au.appointmentRepository.FetchByID(ctx, id)
 }
 
+func (au *appointmentUsecase) FetchByPatientID(c context.Context, patientID uuid.UUID) ([]domain.Appointment, error){
+	ctx, cancel := context.WithTimeout(c, au.contextTimeout)
+	defer cancel()
+	return au.appointmentRepository.FetchByPatientID(ctx, patientID)
+}
+
+func (au *appointmentUsecase) FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]domain.Appointment, error){
+	ctx, cancel := context.WithTimeout(c, au.contextTimeout)
+	defer cancel()
+	return au.appointmentRepository.FetchByDoctorID(ctx, doctorID)
+}
+
 func (au *appointmentUsecase) Update(c context.Context, appointment *domain.Appointment) error {
 	ctx, cancel := context.WithTimeout(c, au.contextTimeout)
 	defer cancel()
