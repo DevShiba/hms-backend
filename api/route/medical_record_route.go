@@ -3,7 +3,9 @@ package route
 import (
 	"database/sql"
 	"hms-api/api/controller"
+	"hms-api/api/middleware"
 	"hms-api/bootstrap"
+	"hms-api/domain"
 	"hms-api/internal/auditservice"
 	"hms-api/repository"
 	"hms-api/usecase"
@@ -19,10 +21,10 @@ func NewMedicalRecordRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB
 	as := auditservice.NewService(alu)
 	mrc := controller.NewMedicalRecordController(usecase.NewMedicalRecordUsecase(mrr, timeout), as)
 
-	group.POST("/medical_records", mrc.Create)
-	group.GET("/medical_records", mrc.Fetch)
-	group.GET("/medical_records/:id", mrc.FetchByID)
-	group.GET("/medical_records/doctor/:doctor_id", mrc.FetchByDoctorID)
-	group.PATCH("/medical_records/:id", mrc.Update)
-	group.DELETE("/medical_records/:id", mrc.Delete)
+	group.POST("/medical_records", middleware.RBACMiddleware(domain.AdminRole, domain.DoctorRole), mrc.Create)
+	group.GET("/medical_records", middleware.RBACMiddleware(domain.AdminRole), mrc.Fetch)
+	group.GET("/medical_records/:id", middleware.RBACMiddleware(), mrc.FetchByID)
+	group.GET("/medical_records/doctor/:doctor_id", middleware.RBACMiddleware(domain.AdminRole, domain.DoctorRole), mrc.FetchByDoctorID)
+	group.PATCH("/medical_records/:id", middleware.RBACMiddleware(domain.AdminRole, domain.DoctorRole), mrc.Update)
+	group.DELETE("/medical_records/:id", middleware.RBACMiddleware(domain.AdminRole), mrc.Delete)
 }

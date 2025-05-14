@@ -3,7 +3,9 @@ package route
 import (
 	"database/sql"
 	"hms-api/api/controller"
+	"hms-api/api/middleware"
 	"hms-api/bootstrap"
+	"hms-api/domain"
 	"hms-api/internal/auditservice"
 	"hms-api/repository"
 	"hms-api/usecase"
@@ -19,11 +21,11 @@ func NewAppointmentRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB, 
 	as := auditservice.NewService(alu)
 	ac := controller.NewAppointmentController(usecase.NewAppointmentUsecase(ar, timeout), as)
 
-	group.POST("/appointments", ac.Create)
-	group.GET("/appointments", ac.Fetch)
-	group.GET("/appointments/:id", ac.FetchByID)
-	group.GET("/appointments/patient/:patient_id", ac.FetchByPatientID)
-	group.GET("/appointments/doctor/:doctor_id", ac.FetchByDoctorID)
-	group.PATCH("/appointments/:id", ac.Update)
-	group.DELETE("/appointments/:id", ac.Delete)
+	group.POST("/appointments", middleware.RBACMiddleware(domain.AdminRole, domain.DoctorRole, domain.PatientRole),ac.Create)
+	group.GET("/appointments", middleware.RBACMiddleware(domain.AdminRole), ac.Fetch)
+	group.GET("/appointments/:id", middleware.RBACMiddleware(domain.AdminRole),ac.FetchByID)
+	group.GET("/appointments/patient/:patient_id",  middleware.RBACMiddleware(domain.AdminRole, domain.PatientRole),ac.FetchByPatientID)
+	group.GET("/appointments/doctor/:doctor_id", middleware.RBACMiddleware(domain.AdminRole, domain.DoctorRole), ac.FetchByDoctorID)
+	group.PATCH("/appointments/:id", middleware.RBACMiddleware(domain.AdminRole, domain.DoctorRole), ac.Update)
+	group.DELETE("/appointments/:id", middleware.RBACMiddleware(domain.AdminRole, domain.DoctorRole), ac.Delete)
 }

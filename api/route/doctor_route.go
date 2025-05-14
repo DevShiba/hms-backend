@@ -3,7 +3,9 @@ package route
 import (
 	"database/sql"
 	"hms-api/api/controller"
+	"hms-api/api/middleware"
 	"hms-api/bootstrap"
+	"hms-api/domain"
 	"hms-api/internal/auditservice"
 	"hms-api/repository"
 	"hms-api/usecase"
@@ -19,9 +21,9 @@ func NewDoctorRoute(env *bootstrap.Env, timeout time.Duration, db *sql.DB, group
 	as := auditservice.NewService(alu)        
 	dc := controller.NewDoctorController(usecase.NewDoctorUsecase(dr, timeout), as)
 
-	group.POST("/doctors", dc.Create)
-	group.GET("/doctors", dc.Fetch)
-	group.GET("/doctors/:id", dc.FetchByID)
-	group.PATCH("/doctors/:id", dc.Update)
-	group.DELETE("/doctors/:id", dc.Delete)
+	group.POST("/doctors", middleware.RBACMiddleware(domain.AdminRole), dc.Create)
+	group.GET("/doctors", middleware.RBACMiddleware(domain.AdminRole), dc.Fetch)
+	group.GET("/doctors/:id", middleware.RBACMiddleware(domain.AdminRole), dc.FetchByID)
+	group.PATCH("/doctors/:id", middleware.RBACMiddleware(domain.AdminRole), dc.Update)
+	group.DELETE("/doctors/:id", middleware.RBACMiddleware(domain.AdminRole), dc.Delete)
 }

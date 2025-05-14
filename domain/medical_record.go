@@ -20,7 +20,7 @@ type MedicalRecordRepository interface {
 	Create(c context.Context, record *MedicalRecord) error
 	Fetch(c context.Context) ([]MedicalRecord, error)
 	FetchByID(c context.Context, id uuid.UUID) (*MedicalRecord, error)
-	FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]MedicalRecord, error) // New method
+	FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]MedicalRecord, error)
 	Update(c context.Context, record *MedicalRecord) error
 	Delete(c context.Context, id uuid.UUID) error
 }
@@ -29,7 +29,7 @@ type MedicalRecordUsecase interface {
 	Create(c context.Context, record *MedicalRecord) error
 	Fetch(c context.Context) ([]MedicalRecord, error)
 	FetchByID(c context.Context, id uuid.UUID) (*MedicalRecord, error)
-	FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]MedicalRecord, error) // New method
+	FetchByDoctorID(c context.Context, doctorID uuid.UUID) ([]MedicalRecord, error) 
 	Update(c context.Context, record *MedicalRecord) error
 	Delete(c context.Context, id uuid.UUID) error
 }
