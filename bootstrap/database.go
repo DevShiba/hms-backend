@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	_ "github.com/lib/pq" 
+	_ "github.com/lib/pq"
 )
 
 func NewPostgresDatabase(env *Env) *sql.DB {
@@ -15,20 +15,35 @@ func NewPostgresDatabase(env *Env) *sql.DB {
         env.DBHost, env.DBPort, env.DBUser, env.DBPass, env.DBName,
     )
 
-		db, err := sql.Open("postgres", dsn)
-		if err != nil {
-			log.Fatal("Error connecting to the database:", err)
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		log.Fatal("Error connecting to the database:", err)
+	}
+
+	db.SetConnMaxLifetime(time.Minute * 5)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+
+	maxRetries := 10
+	retryInterval := time.Second * 3
+
+	for i := 0; i < maxRetries; i++ {
+		err := db.Ping()
+		if err == nil {
+			log.Println("Successfully connected to PostgreSQL database")
+			return db
 		}
-
-		db.SetConnMaxLifetime(time.Minute * 5)
-		db.SetMaxOpenConns(10)
-		db.SetMaxIdleConns(5)
-
-		if err := db.Ping(); err != nil{
-        log.Fatal("Failed to ping Postgres:", err)
+		
+		log.Printf("Failed to ping Postgres (attempt %d/%d): %v", i+1, maxRetries, err)
+		
+		if i < maxRetries-1 {
+			log.Printf("Retrying in %v...", retryInterval)
+			time.Sleep(retryInterval)
 		}
-
-		return db
+	}
+	
+	log.Fatal("Failed to connect to database after multiple attempts. Giving up.")
+	return nil 
 }
 
 func ClosePostgresDB(db *sql.DB){

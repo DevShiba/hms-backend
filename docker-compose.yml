@@ -8,19 +8,27 @@ services:
       - "$PORT:$PORT"
     env_file: .env
     depends_on:
-      - hms_db
+      hms_db:
+        condition: service_healthy
+
   hms_db:
     container_name: hms_db
     image: postgres:latest
     env_file: .env
-    environment:
+    environment:      
       - POSTGRES_USER=$DB_USER
-      - POSTGRES_PASSWORD=123456
+      - POSTGRES_PASSWORD=$DB_PASS
       - POSTGRES_DB=$DB_NAME
     ports:
-      - $DB_PORT:$DB_PORT
+      - "$DB_PORT:$DB_PORT"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   pgdata:
